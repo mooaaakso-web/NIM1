@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مجموعة شركات الجاسم - النظام الفاخر للفواتير والمخزون</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d1b2a;
+            --secondary: #1b263b;
+            --accent-gold: #d4af37;
+            --accent-gold-light: #f9f6ef;
+            --gold-gradient: linear-gradient(135deg, #bf953f, #fbf5b7, #b38728, #fbf5b7, #aa771c);
+            --bg-body: #0b1320;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .workspace {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            max-width: 1550px;
+        }
+
+        /* لوحة التحكم العصرية الجانبية */
+        .control-sidebar {
+            width: 440px;
+            background: rgba(27, 38, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            padding: 20px;
+            max-height: 92vh;
+            overflow-y: auto;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #fff;
+            position: sticky;
+            top: 20px;
+            flex-shrink: 0;
+        }
+
+        .control-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .control-sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 10px;
+        }
+
+        .control-sidebar h2 {
+            font-size: 1.05rem;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #cbd5e1;
+        }
+
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 7px 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .inline-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            background: var(--gold-gradient);
+            color: #0b1320;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            margin-top: 15px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-mini {
+            background: #334155;
+            color: #fff;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-mini:hover { background: #475569; }
+        .btn-danger { background: #991b1b; color: #fff; }
+        .btn-danger:hover { background: #7f1d1d; }
+        .btn-edit { background: #d97706; color: #fff; }
+        .btn-edit:hover { background: #b45309; }
+        .btn-report { background: #0284c7; color: #fff; font-weight: 700; }
+        .btn-report:hover { background: #0369a1; }
+        .btn-success { background: #059669; color: #fff; font-weight: 700; }
+        .btn-success:hover { background: #047857; }
+
+        .item-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* نافذة معاينة الفاتورة بابعاد A4 حصراً */
+        .invoice-canvas-wrapper {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .invoice-canvas {
+            background: var(--card-bg);
+            width: 210mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            padding: 10mm 15mm;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-frame {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d1b2a, #1b263b);
+            border: 2px solid var(--accent-gold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+            flex-shrink: 0;
+        }
+
+        .logo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-fallback {
+            color: #fff;
+            font-weight: 900;
+            font-size: 1rem;
+        }
+
+        .brand-info h1 {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .invoice-badge {
+            text-align: left;
+        }
+
+        .invoice-badge h2 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #1b263b, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .invoice-badge p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .meta-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .meta-box h3 {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-box p {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .meta-box span {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 1px;
+        }
+
+        /* جدول الفاتورة الحديث */
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .modern-table th {
+            background-color: var(--primary) !important;
+            color: #ffffff !important;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        .modern-table td {
+            padding: 8px 6px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-light);
+            background: #ffffff !important;
+        }
+
+        .modern-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tr:nth-child(even) td {
+            background-color: #fcfcfc !important;
+        }
+
+        /* قسم الإجماليات والخصم */
+        .totals-wrapper {
+            width: 300px;
+            margin-right: auto;
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .total-line.discount {
+            color: #b91c1c;
+            background: #fef2f2;
+        }
+
+        .total-line.final {
+            background: var(--primary) !important;
+            color: #fff !important;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            border-bottom: none;
+        }
+
+        .invoice-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-light);
+            padding-top: 8px;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            body {
+                background: none;
+                padding: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .control-sidebar, .no-print {
+                display: none !important;
+            }
+            .invoice-canvas-wrapper {
+                display: block;
+            }
+            .invoice-canvas {
+                box-shadow: none;
+                width: 210mm;
+                height: 297mm;
+                max-height: 297mm;
+                padding: 10mm 15mm;
+                margin: 0;
+                border-radius: 0;
+                page-break-after: avoid;
+                background-color: #ffffff !important;
+            }
+            .modern-table th {
+                background-color: #0d1b2a !important;
+                color: #ffffff !important;
+            }
+            .total-line.final {
+                background-color: #0d1b2a !important;
+                color: #ffffff !important;
+            }
+            .total-line.discount {
+                background-color: #fef2f2 !important;
+                color: #b91c1c !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="workspace">
+    <!-- لوحة التحكم العصرية الجانبية -->
+    <div class="control-sidebar no-print">
+        <h2>إدارة المخزن والتقارير</h2>
+        
+        <div style="display: flex; gap: 4px; margin-bottom: 12px;">
+            <button class="btn-mini btn-report" style="flex:1;" onclick="printInventoryReport()">كشف المخزن</button>
+            <button class="btn-mini btn-report" style="flex:1; background:#d97706;" onclick="printPendingReport()">قائمة الانتظار</button>
+            <button class="btn-mini btn-report" style="flex:1; background:#059669;" onclick="openSoldReportModal()">كشف المباع</button>
+        </div>
+
+        <div class="control-group" style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-bottom:10px;">
+            <label id="inventoryFormTitle">إضافة مركبة جديدة للمخزن</label>
+            <input type="hidden" id="editInventoryId" value="">
+            
+            <label style="font-size:0.72rem; color:#94a3b8;">النوع:</label>
+            <input type="text" id="invType" list="carTypesList" placeholder="اكتب أو اختر النوع..." style="margin-bottom:3px;">
+            <datalist id="carTypesList">
+                <option value="سورنتو"><option value="سبورتج"><option value="سبورتج صيني"><option value="كي فايف">
+            </datalist>
+
+            <label style="font-size:0.72rem; color:#94a3b8;">كود المنتج:</label>
+            <input type="text" id="invCode" placeholder="كود المنتج..." style="margin-bottom:3px;">
+            
+            <label style="font-size:0.72rem; color:#94a3b8;">الموديل:</label>
+            <input type="text" id="invModel" list="carModelsList" placeholder="اكتب أو اختر الموديل..." style="margin-bottom:3px;">
+            <datalist id="carModelsList">
+                <option value="2020"><option value="2021"><option value="2022"><option value="2023"><option value="2024"><option value="2025"><option value="2026"><option value="2027"><option value="2028"><option value="2029"><option value="2030">
+            </datalist>
+
+            <label style="font-size:0.72rem; color:#94a3b8;">رقم الشاصي:</label>
+            <input type="text" id="invChassis" placeholder="رقم الشاصي (فريد)..." style="margin-bottom:3px;">
+            
+            <label style="font-size:0.72rem; color:#94a3b8;">السعر الافتراضي:</label>
+            <input type="number" id="invPrice" placeholder="السعر الافتراضي..." style="margin-bottom:5px;">
+
+            <button id="saveInventoryBtn" class="btn-mini" style="width:100%; background:#10b981; font-weight:700;" onclick="saveVehicleToInventory()">+ حفظ في المخزن</button>
+            <button id="cancelEditBtn" class="btn-mini btn-danger" style="width:100%; margin-top:3px; display:none;" onclick="cancelInventoryEdit()">إلغاء التعديل</button>
+        </div>
+
+        <div class="control-group" style="margin-bottom: 10px;">
+            <label>المركبات المتوفرة حالياً في المخزن:</label>
+            <div id="inventoryListContainer" style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 6px;"></div>
+        </div>
+
+        <!-- قائمة الانتظار للمبيعات المعلقة -->
+        <div class="control-group" style="background: rgba(217, 119, 6, 0.15); border: 1px solid rgba(217, 119, 6, 0.3); padding: 8px; border-radius: 8px; margin-bottom: 10px;">
+            <label style="color:#fbbf24; font-weight:700;">تسجيل بيع معلق (إلى قائمة الانتظار):</label>
+            <select id="pendingSelectVehicle" style="margin-bottom:4px;"></select>
+            <input type="text" id="pendingCustomer" placeholder="اسم الجهة / الزبون المشتري..." style="margin-bottom:4px;">
+            <input type="number" id="pendingPrice" placeholder="سعر البيع المتفق عليه..." style="margin-bottom:6px;">
+            <button class="btn-mini" style="width:100%; background:#d97706; font-weight:700;" onclick="moveToPendingSales()">+ تعليق البيع (نقل للانتظار)</button>
+        </div>
+
+        <div class="control-group" style="margin-bottom: 10px;">
+            <label style="color:#fbbf24;">قائمة البيع في الانتظار (بانتظار موعد التسديد):</label>
+            <div id="pendingListContainer" style="max-height: 110px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 6px;"></div>
+        </div>
+
+        <h2>إعدادات الفاتورة والطباعة</h2>
+        
+        <div class="control-group">
+            <label>إدارة الشعار الرسمي</label>
+            <div class="inline-inputs">
+                <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload(event)" style="display:none;">
+                <button class="btn-mini" style="flex:1; background:#3b82f6;" onclick="document.getElementById('logoUpload').click()">تغيير الشعار</button>
+                <button class="btn-mini" style="flex:1; background:#d4af37; color:#0b1320; font-weight:700;" onclick="setDefaultLogo()">افتراضي</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>رقم الفاتورة (تسلسل تلقائي)</label>
+            <div class="inline-inputs">
+                <input type="number" id="invoiceNumInput" value="1" oninput="updateInvoice()">
+                <button class="btn-mini" onclick="resetInvNum()">تصفير</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>التاريخ والوقت</label>
+            <input type="text" id="dateTimeInput" oninput="updateInvoice()">
+        </div>
+
+        <div class="control-group">
+            <label>الشركة المستفيدة (إلى)</label>
+            <div class="inline-inputs">
+                <select id="companySelect" onchange="updateInvoice()"></select>
+            </div>
+        </div>
+
+        <div class="control-group" style="margin-top:8px;">
+            <label>الجهة المسددة</label>
+            <input type="text" id="payerInput" value="مجموعة شركات الجاسم للسيارات - بغداد النهضة" oninput="updateInvoice()">
+        </div>
+
+        <!-- حقل خصم الجهة القابضة -->
+        <div class="control-group" style="margin-top:8px; background: rgba(185, 28, 28, 0.15); border: 1px solid rgba(185, 28, 28, 0.3); padding: 8px; border-radius: 8px;">
+            <label style="color:#fca5a5; font-weight:700;">خصم الجهة القابضة (مبلغ الاستقطاع):</label>
+            <input type="number" id="discountInput" value="0" placeholder="قيمة الخصم..." oninput="updateInvoice()">
+        </div>
+
+        <h2 style="margin-top: 15px;">بنود الفاتورة اليدوية المباشرة</h2>
+        <div id="itemsControlContainer"></div>
+        <button class="btn-mini" style="width:100%; background:#3b82f6; font-weight:700; padding:6px;" onclick="addItem()">+ إضافة بند للفاتورة</button>
+
+        <button class="btn-action" onclick="printInvoiceDirect()">طباعة الفاتورة المباشرة / حفظ PDF</button>
+    </div>
+
+    <!-- لوحة المعاينة الفاخرة A4 -->
+    <div class="invoice-canvas-wrapper">
+        <div class="invoice-canvas" id="invoiceCanvas">
+            <div>
+                <div class="invoice-header">
+                    <div class="brand-section">
+                        <div class="logo-frame" id="logoFrameContainer">
+                            <span class="logo-fallback">الجاسم</span>
+                        </div>
+                        <div class="brand-info">
+                            <h1 id="viewMainHeader">مجموعة شركات الجاسم</h1>
+                            <p>لتجارة السيارات والمعدات الآلية</p>
+                        </div>
+                    </div>
+                    <div class="invoice-badge">
+                        <h2>فاتورة تسديد</h2>
+                        <p>رقم الفاتورة: <span id="viewInvNum" style="font-weight: 700; color: var(--primary);">1</span></p>
+                        <p id="viewDateTime">04/11/2026</p>
+                    </div>
+                </div>
+
+                <div class="meta-container">
+                    <div class="meta-box">
+                        <h3>إلى</h3>
+                        <p id="metaToName">شركة نيم</p>
+                        <span id="metaToAddr">بغداد المنصور</span>
+                    </div>
+                    <div class="meta-box">
+                        <h3>الجهة المسددة</h3>
+                        <p id="metaPayerName">مجموعة شركات الجاسم للسيارات</p>
+                        <span id="metaPayerAddr">بغداد النهضة</span>
+                    </div>
+                </div>
+
+                <table class="modern-table" id="viewTable">
+                    <thead>
+                        <tr>
+                            <th>النوع</th>
+                            <th>كود المنتج</th>
+                            <th>الموديل</th>
+                            <th>رقم الشاصي</th>
+                            <th class="price-col">السعر</th>
+                            <th class="price-col">المجموع</th>
+                        </tr>
+                    </thead>
+                    <tbody id="viewTableBody"></tbody>
+                </table>
+            </div>
+
+            <div>
+                <div class="totals-wrapper" id="totalsSectionContainer">
+                    <div class="total-line">
+                        <span>إجمالي البنود:</span>
+                        <span id="viewSubTotal">0 د.ع</span>
+                    </div>
+                    <div class="total-line discount" id="discountLineRow" style="display:none;">
+                        <span>خصم الجهة القابضة:</span>
+                        <span id="viewDiscountAmount">0 د.ع</span>
+                    </div>
+                    <div class="total-line final">
+                        <span>صافي المبلغ الذي تم تسديده:</span>
+                        <span id="viewGrandTotal">0 د.ع</span>
+                    </div>
+                </div>
+                <div class="invoice-footer">
+                    مجموعة شركات الجاسم للسيارات — وثيقة رسمية معتمدة للتسديدات المالية
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let companies = [
+        { name: "شركة نيم", address: "بغداد المنصور" }
+    ];
+
+    let vehicleInventory = JSON.parse(localStorage.getItem('vehicle_inventory_v6')) || [
+        { id: 1, type: "سبورتج", code: "D131", model: "2027", chassis: "LJD7AA148V0280937", price: 34850000 },
+        { id: 2, type: "سورنتو", code: "G3Y8", model: "2027", chassis: "KNARH81E8V5417768", price: 57750000 }
+    ];
+
+    let pendingSales = JSON.parse(localStorage.getItem('pending_sales_v2')) || [];
+    let soldArchive = JSON.parse(localStorage.getItem('sold_vehicles_archive_v4')) || [];
+
+    let invoiceItems = [
+        { inventoryId: 1, price: 34850000 }
+    ];
+
+    let invoiceNumber = 1;
+    let currentLogoBase64 = localStorage.getItem('default_logo_base64') || '';
+
+    function init() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('dateTimeInput').value = dateStr;
+
+        renderLogo();
+        renderCompanySelect();
+        renderInventoryList();
+        renderPendingSelect();
+        renderPendingList();
+        renderItemsControl();
+        updateInvoice();
+    }
+
+    function renderLogo() {
+        let container = document.getElementById('logoFrameContainer');
+        if (currentLogoBase64) {
+            container.innerHTML = `<img src="${currentLogoBase64}" alt="شعار الشركة" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+            container.innerHTML = `<span class="logo-fallback">الجاسم</span>`;
+        }
+    }
+
+    function handleLogoUpload(event) {
+        let file = event.target.files[0];
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                currentLogoBase64 = e.target.result;
+                renderLogo();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function setDefaultLogo() {
+        if (currentLogoBase64) {
+            localStorage.setItem('default_logo_base64', currentLogoBase64);
+            alert('تم تعيين الشعار الحالي كافتراضي بنجاح!');
+        } else {
+            localStorage.removeItem('default_logo_base64');
+            alert('تمت إزالة الشعار الافتراضي.');
+        }
+    }
+
+    function renderCompanySelect() {
+        const select = document.getElementById('companySelect');
+        select.innerHTML = '';
+        companies.forEach((comp, idx) => {
+            let opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = `${comp.name} (${comp.address})`;
+            select.appendChild(opt);
+        });
+    }
+
+    function saveVehicleToInventory() {
+        let editId = document.getElementById('editInventoryId').value;
+        let type = document.getElementById('invType').value.trim();
+        let code = document.getElementById('invCode').value.trim();
+        let model = document.getElementById('invModel').value.trim();
+        let chassis = document.getElementById('invChassis').value.trim();
+        let price = Number(document.getElementById('invPrice').value) || 0;
+
+        if(!type || !chassis) {
+            alert('يرجى إدخال نوع المركبة ورقم الشاصي على الأقل.');
+            return;
+        }
+
+        let existingChassis = vehicleInventory.find(v => v.chassis.toLowerCase() === chassis.toLowerCase() && v.id != editId);
+        if(existingChassis) {
+            alert('خطأ: رقم الشاصي هذا موجود مسبقاً في المخزن ولا يمكن تكراره!');
+            return;
+        }
+
+        if(editId) {
+            let veh = vehicleInventory.find(v => v.id == editId);
+            if(veh) {
+                veh.type = type;
+                veh.code = code;
+                veh.model = model;
+                veh.chassis = chassis;
+                veh.price = price;
+            }
+            alert('تم تحديث بيانات المركبة بنجاح!');
+            cancelInventoryEdit();
+        } else {
+            vehicleInventory.push({
+                id: Date.now(),
+                type, code, model, chassis, price
+            });
+            alert('تمت إضافة المركبة بنجاح إلى المخزن!');
+            clearInventoryForm();
+        }
+
+        localStorage.setItem('vehicle_inventory_v6', JSON.stringify(vehicleInventory));
+        renderInventoryList();
+        renderPendingSelect();
+        renderItemsControl();
+        updateInvoice();
+    }
+
+    function clearInventoryForm() {
+        document.getElementById('editInventoryId').value = '';
+        document.getElementById('invType').value = '';
+        document.getElementById('invCode').value = '';
+        document.getElementById('invModel').value = '';
+        document.getElementById('invChassis').value = '';
+        document.getElementById('invPrice').value = '';
+        document.getElementById('inventoryFormTitle').textContent = 'إضافة مركبة جديدة للمخزن';
+        document.getElementById('saveInventoryBtn').textContent = '+ حفظ في المخزن';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+
+    function editVehicleInInventory(id) {
+        let veh = vehicleInventory.find(v => v.id === id);
+        if(!veh) return;
+
+        document.getElementById('editInventoryId').value = veh.id;
+        document.getElementById('invType').value = veh.type;
+        document.getElementById('invCode').value = veh.code;
+        document.getElementById('invModel').value = veh.model;
+        document.getElementById('invChassis').value = veh.chassis;
+        document.getElementById('invPrice').value = veh.price;
+
+        document.getElementById('inventoryFormTitle').textContent = 'تعديل بيانات المركبة';
+        document.getElementById('saveInventoryBtn').textContent = 'حفظ التعديلات';
+        document.getElementById('cancelEditBtn').style.display = 'block';
+    }
+
+    function cancelInventoryEdit() {
+        clearInventoryForm();
+    }
+
+    function deleteVehicleFromInventory(id) {
+        if(confirm('هل أنت متأكد من حذف هذه المركبة من المخزن؟')) {
+            vehicleInventory = vehicleInventory.filter(v => v.id !== id);
+            localStorage.setItem('vehicle_inventory_v6', JSON.stringify(vehicleInventory));
+            renderInventoryList();
+            renderPendingSelect();
+            renderItemsControl();
+            updateInvoice();
+        }
+    }
+
+    function renderInventoryList() {
+        let container = document.getElementById('inventoryListContainer');
+        if(vehicleInventory.length === 0) {
+            container.innerHTML = `<div style="font-size:0.75rem; color:#f87171; text-align:center; padding:4px;">المخزن فارغ</div>`;
+            return;
+        }
+
+        container.innerHTML = vehicleInventory.map(v => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:3px 6px; border-radius:4px; margin-bottom:3px; font-size:0.75rem;">
+                <span style="color:#e2e8f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;" title="${v.type} - شاصي: ${v.chassis}">${v.type} (${v.chassis.slice(-6)})</span>
+                <div>
+                    <button class="btn-mini btn-edit" style="padding:1px 4px; font-size:0.65rem;" onclick="editVehicleInInventory(${v.id})">تعديل</button>
+                    <button class="btn-mini btn-danger" style="padding:1px 4px; font-size:0.65rem;" onclick="deleteVehicleFromInventory(${v.id})">حذف</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderPendingSelect() {
+        let select = document.getElementById('pendingSelectVehicle');
+        select.innerHTML = '';
+        if(vehicleInventory.length === 0) {
+            select.innerHTML = `<option value="">لا توجد مركبات في المخزن</option>`;
+            return;
+        }
+        vehicleInventory.forEach(v => {
+            let opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = `${v.type} - شاصي: ${v.chassis} (${v.price.toLocaleString()} د.ع)`;
+            select.appendChild(opt);
+        });
+    }
+
+    function moveToPendingSales() {
+        let vehId = Number(document.getElementById('pendingSelectVehicle').value);
+        let customer = document.getElementById('pendingCustomer').value.trim();
+        let price = Number(document.getElementById('pendingPrice').value);
+
+        let veh = vehicleInventory.find(v => v.id === vehId);
+        if(!veh) {
+            alert('الرجاء اختيار مركبة صحيحة من المخزن.');
+            return;
+        }
+        if(!customer) {
+            alert('يرجى إدخال اسم الجهة أو الزبون المشتري.');
+            return;
+        }
+        if(!price || price <= 0) {
+            price = veh.price;
+        }
+
+        pendingSales.push({
+            id: Date.now(),
+            ...veh,
+            soldPrice: price,
+            customer: customer,
+            dateAdded: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute:'2-digit'})
+        });
+
+        vehicleInventory = vehicleInventory.filter(v => v.id !== vehId);
+
+        localStorage.setItem('pending_sales_v2', JSON.stringify(pendingSales));
+        localStorage.setItem('vehicle_inventory_v6', JSON.stringify(vehicleInventory));
+
+        document.getElementById('pendingCustomer').value = '';
+        document.getElementById('pendingPrice').value = '';
+
+        renderInventoryList();
+        renderPendingSelect();
+        renderPendingList();
+        renderItemsControl();
+        updateInvoice();
+        alert('تم تعليق البيع ونقل المركبة إلى قائمة الانتظار بنجاح!');
+    }
+
+    function renderPendingList() {
+        let container = document.getElementById('pendingListContainer');
+        if(pendingSales.length === 0) {
+            container.innerHTML = `<div style="font-size:0.75rem; color:#94a3b8; text-align:center; padding:4px;">لا توجد مبيعات معلقة في الانتظار</div>`;
+            return;
+        }
+
+        container.innerHTML = pendingSales.map(item => `
+            <div style="background:rgba(255,255,255,0.05); padding:5px 8px; border-radius:6px; margin-bottom:5px; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong style="color:#fbbf24;">${item.type}</strong> (${item.customer})<br>
+                    <span style="color:#94a3b8; font-family:monospace;">شاصي: ${item.chassis.slice(-6)} | ${item.soldPrice.toLocaleString()} د.ع</span>
+                </div>
+                <div style="display:flex; gap:3px;">
+                    <button class="btn-mini btn-success" style="padding:3px 6px; font-size:0.7rem;" onclick="processPendingSale(${item.id})">إصدار فاتورة وترحيل</button>
+                    <button class="btn-mini btn-danger" style="padding:3px 6px; font-size:0.7rem;" onclick="cancelPendingSale(${item.id})">إلغاء وإعادة للمخزن</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function cancelPendingSale(id) {
+        let item = pendingSales.find(p => p.id === id);
+        if(!item) return;
+
+        if(confirm(`هل تريد إلغاء بيع المركبة (${item.type}) وإعادتها للمخزن؟`)) {
+            pendingSales = pendingSales.filter(p => p.id !== id);
+            
+            vehicleInventory.push({
+                id: item.id,
+                type: item.type,
+                code: item.code,
+                model: item.model,
+                chassis: item.chassis,
+                price: item.soldPrice
+            });
+
+            localStorage.setItem('pending_sales_v2', JSON.stringify(pendingSales));
+            localStorage.setItem('vehicle_inventory_v6', JSON.stringify(vehicleInventory));
+
+            renderInventoryList();
+            renderPendingSelect();
+            renderPendingList();
+            renderItemsControl();
+            updateInvoice();
+        }
+    }
+
+    function processPendingSale(id) {
+        let item = pendingSales.find(p => p.id === id);
+        if(!item) return;
+
+        let existingCompIndex = companies.findIndex(c => c.name === item.customer);
+        if(existingCompIndex === -1) {
+            companies.push({ name: item.customer, address: "فرع الاستلام والتسديد" });
+            existingCompIndex = companies.length - 1;
+        }
+        renderCompanySelect();
+        document.getElementById('companySelect').value = existingCompIndex;
+
+        invoiceItems = [{ inventoryId: item.id, price: item.soldPrice, isTemporary: true, tempVehicle: item }];
+        updateInvoice();
+
+        window.print();
+
+        pendingSales = pendingSales.filter(p => p.id !== id);
+        soldArchive.push({
+            ...item,
+            archiveId: Date.now(),
+            invoiceNum: invoiceNumber,
+            discount: Number(document.getElementById('discountInput').value) || 0,
+            soldDate: document.getElementById('dateTimeInput').value
+        });
+
+        localStorage.setItem('pending_sales_v2', JSON.stringify(pendingSales));
+        localStorage.setItem('sold_vehicles_archive_v4', JSON.stringify(soldArchive));
+
+        invoiceNumber = Number(invoiceNumber) + 1;
+        document.getElementById('invoiceNumInput').value = invoiceNumber;
+        document.getElementById('discountInput').value = 0;
+
+        renderPendingList();
+        renderItemsControl();
+        updateInvoice();
+        alert('تم إصدار الفاتورة وترحيل المركبة بنجاح إلى الأرشيف الدائم!');
+    }
+
+    function renderItemsControl() {
+        let container = document.getElementById('itemsControlContainer');
+        container.innerHTML = '';
+        
+        if(vehicleInventory.length === 0) {
+            container.innerHTML = `<p style="font-size:0.75rem; color:#94a3b8; text-align:center; padding:4px;">ملاحظة: يمكنك استخدام قائمة الانتظار أو إضافة بنود مباشرة.</p>`;
+            return;
+        }
+
+        invoiceItems.forEach((item, index) => {
+            let div = document.createElement('div');
+            div.className = 'item-card';
+
+            let optionsHtml = vehicleInventory.map(v => `
+                <option value="${v.id}" ${v.id === item.inventoryId ? 'selected' : ''}>
+                    ${v.type} (${v.chassis.slice(-6)}) - شاصي: ${v.chassis}
+                </option>
+            `).join('');
+
+            div.innerHTML = `
+                <div style="margin-bottom:4px;">
+                    <label style="font-size:0.7rem; color:#94a3b8;">اختر المركبة:</label>
+                    <select onchange="updateItemInventoryId(${index}, this.value)" style="width:100%; padding:4px 6px; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px; font-size:0.78rem;">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="inline-inputs">
+                    <input type="number" placeholder="السعر" value="${item.price !== '' ? item.price : ''}" oninput="updateItemPrice(${index}, this.value)" style="flex:1; padding:4px; background:#0f172a; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px; font-size:0.78rem;">
+                    <button class="btn-mini btn-danger" onclick="removeItem(${index})">حذف</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function updateItemInventoryId(index, invId) {
+        invoiceItems[index].inventoryId = Number(invId);
+        invoiceItems[index].isTemporary = false;
+        let found = vehicleInventory.find(v => v.id == invId);
+        if(found) {
+            invoiceItems[index].price = found.price;
+        }
+        renderItemsControl();
+        updateInvoice();
+    }
+
+    function updateItemPrice(index, value) {
+        invoiceItems[index].price = value === '' ? '' : Number(value);
+        updateInvoice();
+    }
+
+    function addItem() {
+        if(vehicleInventory.length === 0) {
+            alert('المخزن فارغ.');
+            return;
+        }
+        let firstVeh = vehicleInventory[0];
+        invoiceItems.push({ inventoryId: firstVeh.id, price: firstVeh.price, isTemporary: false });
+        renderItemsControl();
+        updateInvoice();
+    }
+
+    function removeItem(index) {
+        invoiceItems.splice(index, 1);
+        renderItemsControl();
+        updateInvoice();
+    }
+
+    function resetInvNum() {
+        invoiceNumber = 1;
+        document.getElementById('invoiceNumInput').value = invoiceNumber;
+        updateInvoice();
+    }
+
+    function updateInvoice() {
+        invoiceNumber = document.getElementById('invoiceNumInput').value;
+        document.getElementById('viewInvNum').textContent = invoiceNumber;
+        document.getElementById('viewDateTime').textContent = document.getElementById('dateTimeInput').value;
+
+        let selectedComp = companies[document.getElementById('companySelect').value] || companies[0];
+        document.getElementById('metaToName').textContent = selectedComp.name;
+        document.getElementById('metaToAddr').textContent = selectedComp.address;
+
+        let payerText = document.getElementById('payerInput').value;
+        let payerParts = payerText.split('-');
+        document.getElementById('metaPayerName').textContent = payerParts[0] ? payerParts[0].trim() : payerText;
+        document.getElementById('metaPayerAddr').textContent = payerParts[1] ? payerParts[1].trim() : '';
+
+        let tbody = document.getElementById('viewTableBody');
+        tbody.innerHTML = '';
+        let subTotal = 0;
+        let hasAnyPrice = false;
+
+        invoiceItems.forEach(item => {
+            let p = (item.price !== '' && !isNaN(item.price)) ? Number(item.price) : 0;
+            if(p > 0) hasAnyPrice = true;
+        });
+
+        let priceCols = document.querySelectorAll('.price-col');
+        priceCols.forEach(col => {
+            col.style.display = hasAnyPrice ? '' : 'none';
+        });
+
+        invoiceItems.forEach(item => {
+            let veh = null;
+            if(item.isTemporary) {
+                veh = item.tempVehicle;
+            } else {
+                veh = vehicleInventory.find(v => v.id === item.inventoryId);
+            }
+            if(!veh) return;
+
+            let p = (item.price !== '' && !isNaN(item.price)) ? Number(item.price) : 0;
+            if(hasAnyPrice) subTotal += p;
+
+            let html = `
+                <td>${veh.type}</td>
+                <td>${veh.code || '-'}</td>
+                <td>${veh.model || '-'}</td>
+                <td style="font-family: monospace; font-weight: 700; font-size: 0.8rem;">${veh.chassis}</td>
+            `;
+
+            if(hasAnyPrice) {
+                html += `
+                    <td>${p > 0 ? p.toLocaleString() + ' د.ع' : '-'}</td>
+                    <td>${p > 0 ? p.toLocaleString() + ' د.ع' : '-'}</td>
+                `;
+            }
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        });
+
+        let discountVal = Number(document.getElementById('discountInput').value) || 0;
+        let grandTotal = subTotal - discountVal;
+        if(grandTotal < 0) grandTotal = 0;
+
+        let totalsContainer = document.getElementById('totalsSectionContainer');
+        if(hasAnyPrice) {
+            totalsContainer.style.display = 'block';
+            document.getElementById('viewSubTotal').textContent = subTotal.toLocaleString() + ' د.ع';
+            
+            let discountRow = document.getElementById('discountLineRow');
+            if(discountVal > 0) {
+                discountRow.style.display = 'flex';
+                document.getElementById('viewDiscountAmount').textContent = discountVal.toLocaleString() + ' د.ع';
+            } else {
+                discountRow.style.display = 'none';
+            }
+
+            document.getElementById('viewGrandTotal').textContent = grandTotal.toLocaleString() + ' د.ع';
+        } else {
+            totalsContainer.style.display = 'none';
+        }
+    }
+
+    function printInvoiceDirect() {
+        if(invoiceItems.length === 0) {
+            alert('لا توجد بنود في الفاتورة.');
+            return;
+        }
+
+        window.print();
+
+        invoiceNumber = Number(invoiceNumber) + 1;
+        document.getElementById('invoiceNumInput').value = invoiceNumber;
+        document.getElementById('discountInput').value = 0;
+        updateInvoice();
+    }
+
+    // قياسات محسنة تحافظ على الطباعة بصفحة A4 وتمنع أي اقتصاص للشعار أو الإجماليات
+    const reportStyles = `
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        body { background: #ffffff; color: #1e293b; padding: 10mm 15mm; display: flex; justify-content: center; }
+        .report-page {
+            width: 210mm;
+            min-height: 277mm;
+            max-height: 277mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            overflow: hidden;
+            page-break-after: always;
+        }
+        .report-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 12px;
+        }
+        .brand-area { display: flex; align-items: center; gap: 12px; }
+        .logo-box {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #0d1b2a, #1b263b);
+            border: 2px solid #d4af37;
+            display: flex; justify-content: center; align-items: center;
+            color: #fff; font-weight: 900; font-size: 0.85rem;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .logo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .brand-title h1 { font-size: 1.15rem; font-weight: 900; color: #0d1b2a; }
+        .brand-title p { font-size: 0.7rem; color: #64748b; margin-top: 1px; }
+        
+        .report-title-badge { text-align: left; }
+        .report-title-badge h2 {
+            font-size: 1.2rem; font-weight: 900;
+            background: linear-gradient(135deg, #1b263b, #475569);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .report-title-badge p { font-size: 0.7rem; color: #64748b; margin-top: 1px; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 4px; table-layout: fixed; }
+        th { background-color: #0d1b2a !important; color: #ffffff !important; font-size: 0.75rem; font-weight: 700; padding: 6px 4px; text-align: center; border: 1px solid #cbd5e1; }
+        td { padding: 5px 4px; text-align: center; font-size: 0.75rem; color: #1e293b; border: 1px solid #cbd5e1; background: #ffffff !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        tr:nth-child(even) td { background-color: #fcfcfc !important; }
+
+        .totals-box {
+            width: 100%; background: #0d1b2a; color: #fff; border-radius: 6px; padding: 10px 15px; display: flex; justify-content: space-between; font-weight: 900; font-size: 0.9rem; margin-top: 8px; margin-bottom: 8px;
+        }
+        .report-footer { text-align: center; font-size: 0.68rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+        .no-print { display: block; }
+        @media print { .no-print { display: none !important; } body { padding: 0; } }
+    `;
+
+    function printInventoryReport() {
+        let win = window.open('', '_blank');
+        let groupedByType = {};
+        
+        vehicleInventory.forEach(v => {
+            let t = v.type ? v.type.trim() : "أخرى";
+            if(!groupedByType[t]) groupedByType[t] = [];
+            groupedByType[t].push(v);
+        });
+
+        let totalValue = vehicleInventory.reduce((acc, v) => acc + (Number(v.price) || 0), 0);
+        let sectionsHtml = '';
+        let globalIndex = 1;
+
+        for (let typeName in groupedByType) {
+            let cars = groupedByType[typeName];
+            let typeTotal = cars.reduce((acc, v) => acc + (Number(v.price) || 0), 0);
+            
+            let rows = cars.map((v) => `
+                <tr>
+                    <td style="width: 35px;">${globalIndex++}</td>
+                    <td>${v.code || '-'}</td>
+                    <td>${v.model || '-'}</td>
+                    <td style="font-family:monospace; font-weight:700;">${v.chassis}</td>
+                    <td>${Number(v.price || 0).toLocaleString()} د.ع</td>
+                </tr>
+            `).join('');
+
+            sectionsHtml += `
+                <div class="category-section" style="margin-bottom:8px;">
+                    <div style="background:#1b263b; color:#fff; padding:4px 8px; border-radius:4px 4px 0 0; font-size:0.75rem; font-weight:700; display:flex; justify-content:space-between;">
+                        <span>نوع المركبة: ${typeName}</span>
+                        <span style="background:#d4af37; color:#0d1b2a; padding:1px 5px; border-radius:3px; font-size:0.65rem; font-weight:800;">العدد: ${cars.length}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 35px;">#</th>
+                                <th>كود المنتج</th>
+                                <th>الموديل</th>
+                                <th>رقم الشاصي</th>
+                                <th>السعر الافتراضي</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-top:none; padding:4px 8px; font-size:0.75rem; font-weight:800; text-align:left; border-radius:0 0 4px 4px; color:#0d1b2a;">
+                        إجمالي قيمة (${typeName}): ${typeTotal.toLocaleString()} د.ع
+                    </div>
+                </div>
+            `;
+        }
+
+        let logoHtml = currentLogoBase64 ? `<img src="${currentLogoBase64}" alt="شعار">` : `الجاسم`;
+
+        win.document.write(`
+            <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>كشف المخزن</title>
+            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>${reportStyles}</style></head>
+            <body>
+                <div class="report-page">
+                    <div>
+                        <div class="report-header">
+                            <div class="brand-area">
+                                <div class="logo-box">${logoHtml}</div>
+                                <div class="brand-title">
+                                    <h1>مجموعة شركات الجاسم</h1>
+                                    <p>لتجارة السيارات والمعدات الآلية</p>
+                                </div>
+                            </div>
+                            <div class="report-title-badge">
+                                <h2>كشف المخزن الحالي</h2>
+                                <p>التاريخ: ${new Date().toLocaleDateString('en-GB')}</p>
+                            </div>
+                        </div>
+                        ${sectionsHtml || '<p style="text-align:center; padding:20px;">المخزن فارغ تماماً</p>'}
+                    </div>
+                    <div>
+                        <div class="totals-box">
+                            <span>إجمالي قيمة المخزن الكلي:</span>
+                            <span>${totalValue.toLocaleString()} د.ع</span>
+                        </div>
+                        <div class="report-footer">
+                            مجموعة شركات الجاسم للسيارات — كشف رسمي معتمد للمخزون المركزي
+                        </div>
+                    </div>
+                </div>
+                <script>window.print();<\/script>
+            </body></html>
+        `);
+        win.document.close();
+    }
+
+    function printPendingReport() {
+        let win = window.open('', '_blank');
+        let rows = pendingSales.map((v, i) => `
+            <tr>
+                <td style="width: 35px;">${i + 1}</td>
+                <td>${v.customer}</td>
+                <td>${v.dateAdded}</td>
+                <td>${v.type}</td>
+                <td>${v.model || '-'}</td>
+                <td style="font-family:monospace; font-weight:700;">${v.chassis}</td>
+                <td>${Number(v.soldPrice).toLocaleString()} د.ع</td>
+            </tr>
+        `).join('');
+
+        let totalVal = pendingSales.reduce((acc, v) => acc + (Number(v.soldPrice) || 0), 0);
+        let logoHtml = currentLogoBase64 ? `<img src="${currentLogoBase64}" alt="شعار">` : `الجاسم`;
+
+        win.document.write(`
+            <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>قائمة الانتظار</title>
+            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>${reportStyles}</style></head>
+            <body>
+                <div class="report-page">
+                    <div>
+                        <div class="report-header">
+                            <div class="brand-area">
+                                <div class="logo-box">${logoHtml}</div>
+                                <div class="brand-title">
+                                    <h1>مجموعة شركات الجاسم</h1>
+                                    <p>لتجارة السيارات والمعدات الآلية</p>
+                                </div>
+                            </div>
+                            <div class="report-title-badge">
+                                <h2>قائمة الانتظار</h2>
+                                <p>المبيعات المعلقة بانتظار التسديد</p>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 35px;">#</th>
+                                    <th>اسم الجهة / الزبون</th>
+                                    <th>تاريخ التعليق</th>
+                                    <th>النوع</th>
+                                    <th>الموديل</th>
+                                    <th>رقم الشاصي</th>
+                                    <th>سعر البيع المعلق</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows || '<tr><td colspan="7">لا توجد مبيعات في الانتظار حالياً</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <div class="totals-box">
+                            <span>إجمالي المبالغ المعلقة:</span>
+                            <span>${totalVal.toLocaleString()} د.ع</span>
+                        </div>
+                        <div class="report-footer">
+                            مجموعة شركات الجاسم للسيارات — كشف مبيعات الانتظار المعتمد
+                        </div>
+                    </div>
+                </div>
+                <script>window.print();<\/script>
+            </body></html>
+        `);
+        win.document.close();
+    }
+
+    function openSoldReportModal() {
+        let win = window.open('', '_blank');
+        renderSoldReportContent(win);
+    }
+
+    function renderSoldReportContent(win) {
+        win.document.open();
+        let logoHtml = currentLogoBase64 ? `<img src="${currentLogoBase64}" alt="شعار">` : `الجاسم`;
+
+        win.document.write(`
+            <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>كشف المباع</title>
+            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>
+                ${reportStyles}
+                th { background-color: #059669 !important; }
+            </style>
+            </head>
+            <body>
+                <div class="report-page">
+                    <div>
+                        <div class="report-header">
+                            <div class="brand-area">
+                                <div class="logo-box">${logoHtml}</div>
+                                <div class="brand-title">
+                                    <h1>مجموعة شركات الجاسم</h1>
+                                    <p>لتجارة السيارات والمعدات الآلية</p>
+                                </div>
+                            </div>
+                            <div class="report-title-badge">
+                                <h2>كشف المركبات المباعة</h2>
+                                <p>الأرشيف الدائم للتسديدات</p>
+                            </div>
+                        </div>
+                        <div style="text-align: left; margin-bottom: 6px;" class="no-print">
+                            <button onclick="window.print()" style="background:#0284c7; color:#fff; border:none; padding:5px 12px; border-radius:4px; cursor:pointer; font-family:'Tajawal',sans-serif; font-weight:bold; font-size:0.75rem;">طباعة الكشف</button>
+                        </div>
+                        <div id="tableWrapper"></div>
+                    </div>
+                    <div>
+                        <div id="totalsWrapper"></div>
+                        <div class="report-footer">
+                            مجموعة شركات الجاسم للسيارات — أرشيف الكشوفات الرسمية المعتمدة
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    let archiveData = JSON.parse(localStorage.getItem('sold_vehicles_archive_v4')) || [];
+
+                    function drawTable() {
+                        let wrapper = document.getElementById('tableWrapper');
+                        let totalsWrapper = document.getElementById('totalsWrapper');
+                        
+                        if(archiveData.length === 0) {
+                            wrapper.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">لا توجد سجلات مبيعات مرحلة حتى الآن</p>';
+                            totalsWrapper.innerHTML = '';
+                            return;
+                        }
+
+                        let rows = archiveData.map((v, i) => \`
+                            <tr>
+                                <td style="width: 30px;">\${i + 1}</td>
+                                <td>\${v.invoiceNum}</td>
+                                <td>\${v.customer || 'شركة نيم'}</td>
+                                <td>\${v.soldDate}</td>
+                                <td>\${v.type}</td>
+                                <td>\${v.model || '-'}</td>
+                                <td style="font-family:monospace; font-weight:700;">\${v.chassis}</td>
+                                <td>\${Number(v.soldPrice || 0).toLocaleString()} د.ع</td>
+                                <td>\${Number(v.discount || 0).toLocaleString()} د.ع</td>
+                                <td class="no-print"><button onclick="deleteItem(\${v.archiveId || v.id})" style="background:#991b1b; color:#fff; border:none; padding:2px 5px; border-radius:3px; cursor:pointer; font-family:'Tajawal',sans-serif; font-size:0.65rem;">حذف</button></td>
+                            </tr>
+                        \`).join('');
+
+                        let totalSoldValue = archiveData.reduce((acc, v) => acc + (Number(v.soldPrice || 0) - Number(v.discount || 0)), 0);
+
+                        wrapper.innerHTML = \`
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;">#</th>
+                                        <th>رقم الفاتورة</th>
+                                        <th>الجهة المشتري</th>
+                                        <th>تاريخ الاستلام</th>
+                                        <th>النوع</th>
+                                        <th>الموديل</th>
+                                        <th>رقم الشاصي</th>
+                                        <th>السعر الإجمالي</th>
+                                        <th>الخصم</th>
+                                        <th class="no-print" style="width: 45px;">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody>\${rows}</tbody>
+                            </table>
+                        \`;
+
+                        totalsWrapper.innerHTML = \`
+                            <div class="totals-box" style="background: #059669;">
+                                <span>إجمالي الصافي (المبلغ المسدد):</span>
+                                <span>\${totalSoldValue.toLocaleString()} د.ع</span>
+                            </div>
+                        \`;
+                    }
+
+                    function deleteItem(id) {
+                        if(confirm('هل أنت متأكد من حذف هذا السجل من أرشيف المباع؟')) {
+                            archiveData = archiveData.filter(v => (v.archiveId || v.id) !== id);
+                            localStorage.setItem('sold_vehicles_archive_v4', JSON.stringify(archiveData));
+                            window.opener.window.deleteSoldArchiveItem(id);
+                            drawTable();
+                        }
+                    }
+
+                    drawTable();
+                <\/script>
+            </body></html>
+        `);
+        win.document.close();
+    }
+
+    window.deleteSoldArchiveItem = function(id) {
+        soldArchive = soldArchive.filter(v => (v.archiveId || v.id) !== id);
+        localStorage.setItem('sold_vehicles_archive_v4', JSON.stringify(soldArchive));
+    };
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
